@@ -5,7 +5,8 @@ logs/
 results/
 temp/
 test/
-
+samples/mapping/mapping/
+*.tar.gz
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
