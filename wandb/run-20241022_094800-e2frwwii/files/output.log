@@ -1,0 +1,29 @@
+loading annotations into memory...
+Traceback (most recent call last):
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/__main__.py", line 71, in <module>
+    cli.main()
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 501, in main
+    run()
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 351, in run_file
+    runpy.run_path(target, run_name="__main__")
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+    return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+    _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+  File "/home/your_email/.vscode-server/extensions/ms-python.debugpy-2024.12.0-linux-x64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+    exec(code, run_globals)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 347, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 291, in main
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 95, in dataset_load
+    coco = dataset.load_coco(dataset_dir, 'train', return_coco=True)
+  File "/home/your_email/iptu/samples/mapping/loader.py", line 74, in load_coco
+    coco = COCO("{}/{}/annotation.json".format(dataset_dir, subset))
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/pycocotools/coco.py", line 81, in __init__
+    with open(annotation_file, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'mapping/train/annotation.json'

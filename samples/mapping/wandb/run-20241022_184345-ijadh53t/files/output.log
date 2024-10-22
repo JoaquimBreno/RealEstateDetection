@@ -1,0 +1,57 @@
+loading annotations into memory...
+Done (t=27.17s)
+creating index...
+index created!
+Train Image Count: 280741
+Train Class Count: 2
+  0. BG
+  1. building
+loading annotations into memory...
+Done (t=6.93s)
+creating index...
+index created!
+Val Image Count: 60317
+Val Class Count: 2
+  0. BG
+  1. building
+logs/2024-10-22_18-44-31/maskrcnn_resnet50_fpn_v2.pth
+/home/your_email/iptu/samples/mapping/main.py:244: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler() if device.type == 'cuda' and use_scaler else None
+Epochs:   0%|                                                                                                                   | 0/40 [01:32<?, ?it/s]
+GPU disponível. Treinamento iniciará na GPU.
+Traceback (most recent call last):                                          | 168/70186 [01:32<10:27:52,  1.86it/s, loss=0.651, avg_loss=1.09, lr=2e-5]
+Lote 8 ignorado devido a masks de tamanho zero.
+Lote 13 ignorado devido a masks de tamanho zero.
+Lote 14 ignorado devido a masks de tamanho zero.
+Lote 28 ignorado devido a masks de tamanho zero.
+Lote 39 ignorado devido a masks de tamanho zero.
+Lote 48 ignorado devido a masks de tamanho zero.
+Lote 60 ignorado devido a masks de tamanho zero.
+Lote 76 ignorado devido a masks de tamanho zero.
+Lote 79 ignorado devido a masks de tamanho zero.
+Lote 88 ignorado devido a masks de tamanho zero.
+Lote 90 ignorado devido a masks de tamanho zero.
+Lote 100 ignorado devido a masks de tamanho zero.
+Lote 124 ignorado devido a masks de tamanho zero.
+Lote 127 ignorado devido a masks de tamanho zero.
+Lote 138 ignorado devido a masks de tamanho zero.
+Lote 163 ignorado devido a masks de tamanho zero.
+Lote 167 ignorado devido a masks de tamanho zero.
+Lote 179 ignorado devido a masks de tamanho zero.
+Lote 182 ignorado devido a masks de tamanho zero.
+Lote 184 ignorado devido a masks de tamanho zero.
+  File "/home/your_email/iptu/samples/mapping/main.py", line 351, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 327, in main
+    train_loop(model=model,
+  File "/home/your_email/iptu/samples/mapping/main.py", line 250, in train_loop
+    train_loss = run_epoch(model, train_dataloader, optimizer, lr_scheduler, device, scaler, epoch, is_training=True)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 182, in run_epoch
+    scaler.step(optimizer)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/amp/grad_scaler.py", line 457, in step
+    retval = self._maybe_opt_step(optimizer, optimizer_state, *args, **kwargs)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/amp/grad_scaler.py", line 351, in _maybe_opt_step
+    if not sum(v.item() for v in optimizer_state["found_inf_per_device"].values()):
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/amp/grad_scaler.py", line 351, in <genexpr>
+    if not sum(v.item() for v in optimizer_state["found_inf_per_device"].values()):
+KeyboardInterrupt

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 351, in <module>
+    main(dataset_dir=args.dataset_dir, epochs=args.epochs, size=args.size, class_names=args.size)
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 291, in main
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 93, in dataset_load
+    train_tfms, valid_tfms = transforms(size)
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 56, in transforms
+    data_aug_tfms = transforms.Compose(
+AttributeError: 'function' object has no attribute 'Compose'

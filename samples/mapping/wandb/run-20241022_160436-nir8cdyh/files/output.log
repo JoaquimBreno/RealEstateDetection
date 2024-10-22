@@ -1,0 +1,39 @@
+loading annotations into memory...
+Done (t=27.02s)
+creating index...
+index created!
+Train Image Count: 280741
+Train Class Count: 2
+  0. BG
+  1. building
+loading annotations into memory...
+Done (t=6.80s)
+creating index...
+index created!
+Val Image Count: 60317
+Val Class Count: 2
+  0. BG
+  1. building
+logs/2024-10-22_16-05-21/maskrcnn_resnet50_fpn_v2.pth
+/home/your_email/iptu/samples/mapping/main.py:241: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler() if device.type == 'cuda' and use_scaler else None
+Epochs:   0%|                                                                                                                       | 0/40 [00:00<?, ?it/s]
+GPU disponível. Treinamento iniciará na GPU.
+Traceback (most recent call last):                                                                                               | 0/70186 [00:00<?, ?it/s]
+  File "/home/your_email/iptu/samples/mapping/main.py", line 347, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 323, in main
+    train_loop(model=model,
+  File "/home/your_email/iptu/samples/mapping/main.py", line 247, in train_loop
+    train_loss = run_epoch(model, train_dataloader, optimizer, lr_scheduler, device, scaler, epoch, is_training=True)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 167, in run_epoch
+    losses = model(inputs.to(device), move_data_to_device(targets, device))
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torchvision/models/detection/generalized_rcnn.py", line 95, in forward
+    torch._assert(
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/__init__.py", line 2041, in _assert
+    assert condition, message
+AssertionError: All bounding boxes should have positive height and width. Found invalid box [461.3333435058594, 594.6666870117188, 165.33334350585938, 32.0] for target at index 0.

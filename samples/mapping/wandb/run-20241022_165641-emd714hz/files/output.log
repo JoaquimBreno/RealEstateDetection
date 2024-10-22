@@ -1,0 +1,18 @@
+loading annotations into memory...
+Done (t=28.82s)
+creating index...
+index created!
+Train Image Count: 280741
+Train Class Count: 2
+  0. BG
+  1. building
+Traceback (most recent call last):
+  File "/home/your_email/iptu/samples/mapping/main.py", line 348, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 292, in main
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 102, in dataset_load
+    train_data = CocoDataLoader(coco,dataset_dir,'train', dataset, transform=train_tfms)
+  File "/home/your_email/iptu/samples/mapping/dataloader.py", line 17, in __init__
+    self.image_ids = [image_id for image_id in initial_image_ids if self._has_masks(image_id)]
+NameError: name 'initial_image_ids' is not defined

@@ -17,10 +17,6 @@ import utils
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
-
-# Import Mask RCNN
-sys.path.append(ROOT_DIR)  # To find local version of the library
-
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "pretrained.h5")
 
@@ -96,13 +92,33 @@ class CocoDataset(utils.Dataset):
 
         # Add images
         for i in image_ids:
-            self.add_image(
-                "coco", image_id=i,
-                path=os.path.join(image_dir, coco.imgs[i]['file_name']),
-                width=coco.imgs[i]["width"],
-                height=coco.imgs[i]["height"],
-                annotations=coco.loadAnns(coco.getAnnIds(
-                    imgIds=[i], catIds=class_ids, iscrowd=None)))
+            width = coco.imgs[i]["width"]
+            height=coco.imgs[i]["height"]
+            valid_annotations = []
+            annotations=coco.loadAnns(coco.getAnnIds(
+                imgIds=[i], catIds=class_ids, iscrowd=None))
+            for ann in annotations:
+                if(ann["area"]>=1.0):
+                    valid_annotations.append(ann)
+            #     m = self.annToMask(ann, height, width)
+            #     if m.max() >= 1:
+            #         valid_annotations.append(ann)
+            # if(len(valid_annotations)):
+            #     self.add_image(
+            #         "coco", image_id=i,
+            #         path=os.path.join(image_dir, coco.imgs[i]['file_name']),
+            #         width=width,
+            #         height=height,
+            #         annotations=valid_annotations
+            #     )
+            if(valid_annotations):
+                self.add_image(
+                    "coco", image_id=i,
+                    path=os.path.join(image_dir, coco.imgs[i]['file_name']),
+                    width=width,
+                    height=height,
+                    annotations=valid_annotations
+                )
         if return_coco:
             return coco
 
@@ -119,6 +135,7 @@ class CocoDataset(utils.Dataset):
         class_ids: a 1D array of class IDs of the instance masks.
         """
         # If not a COCO image, delegate to parent class.
+    
         image_info = self.image_info[image_id]
         if image_info["source"] != "coco":
             return super(CocoDataset, self).load_mask(image_id)

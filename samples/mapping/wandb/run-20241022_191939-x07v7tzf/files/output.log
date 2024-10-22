@@ -1,0 +1,18 @@
+loading annotations into memory...
+Done (t=26.44s)
+creating index...
+index created!
+Train Image Count: 280529
+Train Class Count: 2
+  0. BG
+  1. building
+Traceback (most recent call last):
+  File "/home/your_email/iptu/samples/mapping/main.py", line 350, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 294, in main
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 102, in dataset_load
+    train_data = CocoDataLoader(coco,dataset_dir,'train', dataset, transform=train_tfms)
+  File "/home/your_email/iptu/samples/mapping/dataloader.py", line 17, in __init__
+    self.image_ids = list(self.dataset.image_ids)
+AttributeError: 'CocoDataLoader' object has no attribute 'dataset'

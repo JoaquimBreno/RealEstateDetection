@@ -1,0 +1,51 @@
+loading annotations into memory...
+Done (t=25.76s)
+creating index...
+index created!
+Train Image Count: 280741
+Train Class Count: 2
+  0. BG
+  1. building
+loading annotations into memory...
+Done (t=6.10s)
+creating index...
+index created!
+Val Image Count: 60317
+Val Class Count: 2
+  0. BG
+  1. building
+logs/2024-10-22_10-06-16/maskrcnn_resnet50_fpn_v2.pth
+/home/your_email/iptu/samples/mapping/main.py:241: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler() if device.type == 'cuda' and use_scaler else None
+Epochs:   0%|                                                                                                 | 0/40 [00:00<?, ?it/s]
+GPU disponível. Treinamento iniciará na GPU.
+Traceback (most recent call last):                                                                         | 0/70186 [00:00<?, ?it/s]
+  File "/home/your_email/iptu/samples/mapping/main.py", line 347, in <module>
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 323, in main
+    train_loop(model=model,
+  File "/home/your_email/iptu/samples/mapping/main.py", line 247, in train_loop
+    train_loss = run_epoch(model, train_dataloader, optimizer, lr_scheduler, device, scaler, epoch, is_training=True)
+  File "/home/your_email/iptu/samples/mapping/main.py", line 160, in run_epoch
+    for batch_id, (inputs, targets) in enumerate(dataloader):
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1465, in _next_data
+    return self._process_data(data)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1491, in _process_data
+    data.reraise()
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/_utils.py", line 715, in reraise
+    raise exception
+UnboundLocalError: Caught UnboundLocalError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 351, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/your_email/iptu/samples/mapping/dataloader.py", line 31, in __getitem__
+    image, targets = self._load_image_and_target(image_id)
+  File "/home/your_email/iptu/samples/mapping/dataloader.py", line 83, in _load_image_and_target
+    targets = {'masks': Mask(mask_tensor), 'boxes': boxes, 'labels': labels}
+UnboundLocalError: local variable 'boxes' referenced before assignment

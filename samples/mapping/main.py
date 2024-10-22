@@ -1,71 +1,3 @@
-# Import Python Standard Library dependencies
-from functools import partial
-from glob import glob
-import json
-import math
-import multiprocessing
-import os
-from pathlib import Path
-import random
-from typing import Any, Dict, Optional
-
-# Import utility functions
-from cjm_psl_utils.core import download_file, file_extract, get_source_code
-from cjm_pil_utils.core import resize_img, get_img_files, stack_imgs
-from cjm_pytorch_utils.core import pil_to_tensor, tensor_to_pil, get_torch_device, set_seed, denorm_img_tensor, move_data_to_device
-from cjm_pandas_utils.core import markdown_to_pandas, convert_to_numeric, convert_to_string
-from cjm_torchvision_tfms.core import ResizeMax, PadSquare, CustomRandomIoUCrop
-
-# Import the distinctipy module
-from distinctipy import distinctipy
-
-# Import matplotlib for creating plots
-import matplotlib.pyplot as plt
-
-# Import numpy
-import numpy as np
-
-# Import the pandas package
-import pandas as pd
-
-# Set options for Pandas DataFrame display
-pd.set_option('max_colwidth', None)  # Do not truncate the contents of cells in the DataFrame
-pd.set_option('display.max_rows', None)  # Display all rows in the DataFrame
-pd.set_option('display.max_columns', None)  # Display all columns in the DataFrame
-
-# Import PIL for image manipulation
-from PIL import Image, ImageDraw
-
-# Import PyTorch dependencies
-import torch
-from torch.amp import autocast
-from torch.cuda.amp import GradScaler
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-from torchtnt.utils import get_module_summary
-import torchvision
-torchvision.disable_beta_transforms_warning()
-from torchvision.tv_tensors import BoundingBoxes, Mask
-from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
-import torchvision.transforms.v2  as transforms
-from torchvision.transforms.v2 import functional as TF
-
-# Import Mask R-CNN
-from torchvision.models.detection import maskrcnn_resnet50_fpn_v2, MaskRCNN
-from torchvision.models.detection import MaskRCNN_ResNet50_FPN_V2_Weights
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
-
-# Import tqdm for progress bar
-from tqdm.auto import tqdm
-
-
-"""
-
-------------------------------------------------------------
-
-"""
 # main.py
 import argparse
 import json
@@ -73,11 +5,7 @@ import os
 import datetime
 from pathlib import Path
 import sys
-import torch
-import torch.optim
-import torchvision.transforms.v2 as transforms
-from torch.utils.data import DataLoader
-from torchvision.models.detection import maskrcnn_resnet50_fpn_v2
+import math 
 from tqdm.auto import tqdm
 from distinctipy import distinctipy
 import pandas as pd
@@ -87,24 +15,21 @@ from dataloader import CocoDataLoader
 from loader import CocoDataset
 import wandb
 
+import torch
+import torch.optim
+import torchvision.transforms.v2 as transforms
+from torch.utils.data import DataLoader
+from cjm_pytorch_utils.core import get_torch_device, set_seed, denorm_img_tensor, move_data_to_device
+from cjm_torchvision_tfms.core import ResizeMax, PadSquare, CustomRandomIoUCrop
+from torchvision.models.detection import maskrcnn_resnet50_fpn_v2
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+from torch.amp import autocast
+import torch.distributed as dist
+dist.init_process_group(backend="nccl")
 
-# Inicialização do W&B
-wandb.init(project='nome_do_projeto', entity='nome_da_entidade', config={
-    "epochs": epochs,
-    "model_architecture": "mrcnn",
-    # qualquer outra configuração relevante
-})
 
-# Root directory of the project
-ROOT_DIR = os.path.abspath("../../")
-
-# Import Mask RCNN
-sys.path.append(ROOT_DIR)  # To find local version of the library
-
-
-# Set the seed for generating random numbers in PyTorch, NumPy, and Python's random module.
-seed = 1234
-set_seed(seed)
+#######################################################################################
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -115,121 +40,94 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "pretrained.h5")
 
-# Create a RandomIoUCrop object
-train_sz = 300
-iou_crop = CustomRandomIoUCrop(min_scale=0.3, 
-                               max_scale=1.0, 
-                               min_aspect_ratio=0.5, 
-                               max_aspect_ratio=2.0, 
-                               sampler_options=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0],
-                               trials=400, 
-                               jitter_factor=0.25)
-# Create a `ResizeMax` object
-resize_max = ResizeMax(max_sz=train_sz)
+#######################################################################################
 
-# Create a `PadSquare` object
-pad_square = PadSquare(shift=True, fill=0)
-class_names = ['background', 'building']
-# Generate a list of colors with a length equal to the number of labels
-colors = distinctipy.get_colors(len(class_names))
+def transformings(size):
+    iou_crop = CustomRandomIoUCrop(min_scale=0.3, 
+                                max_scale=1.0, 
+                                min_aspect_ratio=0.5, 
+                                max_aspect_ratio=2.0, 
+                                sampler_options=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0],
+                                trials=400, 
+                                jitter_factor=0.25)
+    # Create a `ResizeMax` object
+    resize_max = ResizeMax(max_sz=size)
 
-# Make a copy of the color map in integer format
-int_colors = [tuple(int(c*255) for c in color) for color in colors]
+    # Create a `PadSquare` object
+    pad_square = PadSquare(shift=True, fill=0)
+    data_aug_tfms = transforms.Compose(
+        transforms=[
+            iou_crop,  # Assuming 'iou_crop' is properly defined elsewhere as a callable
+            transforms.ColorJitter(
+                brightness=(0.875, 1.125),
+                contrast=(0.5, 1.5),
+                saturation=(0.5, 1.5),
+                hue=(-0.05, 0.05),
+            ),
+            transforms.RandomGrayscale(),
+            transforms.RandomEqualize(),
+            transforms.RandomPosterize(bits=3, p=0.5),
+            transforms.RandomHorizontalFlip(p=0.75),  # Adjusted probability to 0.75
+        ],
+    )
 
-# Generate a color swatch to visualize the color map
-distinctipy.color_swatch(colors)
+    # Assuming 'resize_max' and 'pad_square' are custom defined functions
+    # and 'train_sz' is a defined variable
+    resize_pad_tfm = transforms.Compose([
+        resize_max,  # Custom transform func
+        pad_square,  # Custom transform func
+        transforms.Resize([size] * 2, antialias=True),
+    ])
 
-# Update 'data_aug_tfms' to adjust LR flip probability
-data_aug_tfms = transforms.Compose(
-    transforms=[
-        iou_crop,  # Assuming 'iou_crop' is properly defined elsewhere as a callable
-        transforms.ColorJitter(
-            brightness=(0.875, 1.125),
-            contrast=(0.5, 1.5),
-            saturation=(0.5, 1.5),
-            hue=(-0.05, 0.05),
-        ),
-        transforms.RandomGrayscale(),
-        transforms.RandomEqualize(),
-        transforms.RandomPosterize(bits=3, p=0.5),
-        transforms.RandomHorizontalFlip(p=0.75),  # Adjusted probability to 0.75
-    ],
-)
+    # Assuming the existence of custom transform classes or functions similar to prior definitions
+    final_tfms = transforms.Compose([
+        transforms.ToImage(),  # Assuming 'ToImage' transform exists
+        transforms.ToDtype(torch.float32, scale=True),  # Assuming 'ToDtype' transform exists
+        transforms.SanitizeBoundingBoxes(),  # Assuming 'SanitizeBoundingBoxes' transform exists
+    ])
 
-# Assuming 'resize_max' and 'pad_square' are custom defined functions
-# and 'train_sz' is a defined variable
-resize_pad_tfm = transforms.Compose([
-    resize_max,  # Custom transform func
-    pad_square,  # Custom transform func
-    transforms.Resize([train_sz] * 2, antialias=True),
-])
+    # Define the transformed training and validation datasets
+    train_tfms = transforms.Compose([data_aug_tfms, resize_pad_tfm, final_tfms])
+    valid_tfms = transforms.Compose([resize_pad_tfm, final_tfms])
+    
+    return train_tfms,valid_tfms
+def dataset_load(size, dataset_dir, device):
+    train_tfms, valid_tfms = transformings(size)  
+    dataset = CocoDataset()
+    coco = dataset.load_coco(dataset_dir, 'train', return_coco=True)
+    dataset.prepare()
 
-# Assuming the existence of custom transform classes or functions similar to prior definitions
-final_tfms = transforms.Compose([
-    transforms.ToImage(),  # Assuming 'ToImage' transform exists
-    transforms.ToDtype(torch.float32, scale=True),  # Assuming 'ToDtype' transform exists
-    transforms.SanitizeBoundingBoxes(),  # Assuming 'SanitizeBoundingBoxes' transform exists
-])
+    print("Train Image Count: {}".format(len(dataset.image_ids)))
+    print("Train Class Count: {}".format(dataset.num_classes))
+    for i, info in enumerate(dataset.class_info):
+        print("{:3}. {:50}".format(i, info['name']))
+    train_data = CocoDataLoader(coco,dataset_dir,'train', dataset, transform=train_tfms)
+    
+    dataset = CocoDataset()
+    coco = dataset.load_coco(dataset_dir, 'val', return_coco=True)
+    dataset.prepare()
 
-# Define the transformed training and validation datasets
-train_tfms = transforms.Compose([data_aug_tfms, resize_pad_tfm, final_tfms])
-valid_tfms = transforms.Compose([resize_pad_tfm, final_tfms])
-
-# Initialize a Mask R-CNN model with pretrained weights
-model = maskrcnn_resnet50_fpn_v2(weights='DEFAULT')
-
-# Get the number of input features for the classifier
-in_features_box = model.roi_heads.box_predictor.cls_score.in_features
-in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-
-# Get the numbner of output channels for the Mask Predictor
-dim_reduced = model.roi_heads.mask_predictor.conv5_mask.out_channels
-
-# Replace the box predictor
-model.roi_heads.box_predictor = FastRCNNPredictor(in_channels=in_features_box, num_classes=len(class_names))
-
-# Replace the mask predictor
-model.roi_heads.mask_predictor = MaskRCNNPredictor(in_channels=in_features_mask, dim_reduced=dim_reduced, num_classes=len(class_names))
-
-# Set the model's device and data type
-model.to(device=device, dtype=dtype);
-
-# Add attributes to store the device and model name for later reference
-model.device = device
-model.name = 'maskrcnn_resnet50_fpn_v2'
-
-dataset = CocoDataset()
-coco = dataset.load_coco(dataset_dir, 'train', return_coco=True)
-dataset.prepare()
-
-print("Image Count: {}".format(len(dataset.image_ids)))
-print("Class Count: {}".format(dataset.num_classes))
-for i, info in enumerate(dataset.class_info):
-    print("{:3}. {:50}".format(i, info['name']))
-train_data = CocoDataLoader(coco,dataset_dir,'train',dataset.class_info,)
-
-# Set the training batch size
-bs = 4
-
-# Set the number of worker processes for loading data.
-num_workers = multiprocessing.cpu_count()//2
-
-# Define parameters for DataLoader
-data_loader_params = {
-    'batch_size': bs,  # Batch size for data loading
-    'num_workers': num_workers,  # Number of subprocesses to use for data loading
-    'persistent_workers': True,  # If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the worker dataset instances alive.
-    'pin_memory': 'cuda' in device,  # If True, the data loader will copy Tensors into CUDA pinned memory before returning them. Useful when using GPU.
-    'pin_memory_device': device if 'cuda' in device else '',  # Specifies the device where the data should be loaded. Commonly set to use the GPU.
-    'collate_fn': lambda batch: tuple(zip(*batch)),
-}
-# Create DataLoader for training data. Data is shuffled for every epoch.
-train_dataloader = DataLoader(train_data, **data_loader_params, shuffle=True)
-del train_data
-# Print the number of batches in the training and validation DataLoaders
-pd.Series({
-    'Number of batches in train DataLoader:': len(train_dataloader)
-).to_frame().style.hide(axis='columns')
+    print("Val Image Count: {}".format(len(dataset.image_ids)))
+    print("Val Class Count: {}".format(dataset.num_classes))
+    for i, info in enumerate(dataset.class_info):
+        print("{:3}. {:50}".format(i, info['name']))
+    val_data = CocoDataLoader(coco,dataset_dir,'val', dataset, transform=valid_tfms)
+    
+    num_workers = multiprocessing.cpu_count()//2
+    bs = 4
+    # Define parameters for DataLoader
+    data_loader_params = {
+        'batch_size': bs,  # Batch size for data loading
+        'num_workers': num_workers,  # Number of subprocesses to use for data loading
+        'persistent_workers': True,  # If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the worker dataset instances alive.
+        'pin_memory': 'cuda' in device,  # If True, the data loader will copy Tensors into CUDA pinned memory before returning them. Useful when using GPU.
+        'pin_memory_device': device if 'cuda' in device else '',  # Specifies the device where the data should be loaded. Commonly set to use the GPU.
+        'collate_fn': lambda batch: tuple(zip(*batch)),
+    }
+    
+    train_dataloader = DataLoader(train_data, **data_loader_params, shuffle=True)
+    valid_dataloader = DataLoader(val_data, **data_loader_params)
+    return train_dataloader, valid_dataloader
 
 
 def run_epoch(model, dataloader, optimizer, lr_scheduler, device, scaler, epoch_id, is_training):
@@ -269,12 +167,14 @@ def run_epoch(model, dataloader, optimizer, lr_scheduler, device, scaler, epoch_
         with autocast(torch.device(device).type):
             if is_training:
                 losses = model(inputs.to(device), move_data_to_device(targets, device))
+                
             else:
                 with torch.no_grad():
                     losses = model(inputs.to(device), move_data_to_device(targets, device))
         
             # Compute the loss
             loss = sum([loss for loss in losses.values()])  # Sum up the losses
+            
 
         # If in training mode, backpropagate the error and update the weights
         if is_training:
@@ -300,6 +200,7 @@ def run_epoch(model, dataloader, optimizer, lr_scheduler, device, scaler, epoch_
         # Update the progress bar
         progress_bar_dict = dict(loss=loss_item, avg_loss=epoch_loss/(batch_id+1))
         if is_training:
+            wandb.log({"batch_loss": loss_item})
             progress_bar_dict.update(lr=lr_scheduler.get_last_lr()[0])
         progress_bar.set_postfix(progress_bar_dict)
         progress_bar.update()
@@ -352,7 +253,7 @@ def train_loop(model,
         # Run an evaluation epoch and get the validation loss
         with torch.no_grad():
             valid_loss = run_epoch(model, valid_dataloader, None, None, device, scaler, epoch, is_training=False)
-
+            wandb.log({"valid_loss": valid_loss})
         # If the validation loss is lower than the best validation loss seen so far, save the model checkpoint
         if valid_loss < best_loss:
             best_loss = valid_loss
@@ -374,50 +275,79 @@ def train_loop(model,
     if device.type != 'cpu':
         getattr(torch, device.type).empty_cache()
         
-import datetime
-# Generate timestamp for the training session (Year-Month-Day_Hour_Minute_Second)
-timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-# Create a directory to store the checkpoints if it does not already exist
-checkpoint_dir = Path(f"logs/{timestamp}")
+    import datetime
 
-# Create the checkpoint directory if it does not already exist
-checkpoint_dir.mkdir(parents=True, exist_ok=True)
+def main(dataset_dir, epochs, size, class_names):
+    # Set seed for reproducibility
+    seed = 1234
+    set_seed(seed)
+    device = get_torch_device()
+    dtype = torch.float32
+    
+    wandb.init(project='iptu', config={
+        "epochs": epochs,
+        "model_architecture": "mrcnn",
+    })
 
-# The model checkpoint path
-checkpoint_path = checkpoint_dir/f"{model.name}.pth"
+    ROOT_DIR = Path(os.path.abspath(__file__)).parent
 
-print(checkpoint_path)
 
-# Create a color map and write it to a JSON file
-color_map = {'items': [{'label': label, 'color': color} for label, color in zip(class_names, colors)]}
-with open(f"{checkpoint_dir}/colormap.json", "w") as file:
-    json.dump(color_map, file)
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+    
+    lr = 5e-4
+    # Definir o modelo, otimizador e agendador de LR
+    model = maskrcnn_resnet50_fpn_v2(weights='DEFAULT')
+    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.local_rank], output_device=args.local_rank)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, 
+                                                       max_lr=lr, 
+                                                       total_steps=epochs*len(train_dataloader))
+    wandb.config.update({"learning_rate": optimizer.defaults['lr']})
 
-# Print the name of the file that the color map was written to
-print(f"{checkpoint_dir}/colormap.json")
+    # Get the number of input features for the classifier
+    in_features_box = model.roi_heads.box_predictor.cls_score.in_features
+    in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
 
-# Learning rate for the model
-lr = 5e-4
+    # Get the numbner of output channels for the Mask Predictor
+    dim_reduced = model.roi_heads.mask_predictor.conv5_mask.out_channels
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_channels=in_features_box, num_classes=len(class_names))
+    model.roi_heads.mask_predictor = MaskRCNNPredictor(in_channels=in_features_mask, dim_reduced=dim_reduced, num_classes=len(class_names))
 
-# Number of training epochs
-epochs = 40
+    # Set the model's device and data type
+    model.to(device=device, dtype=dtype)
+    model.device = device
+    model.name = 'maskrcnn_resnet50_fpn_v2'
+    
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    checkpoint_dir = Path(f"logs/{timestamp}")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = checkpoint_dir/f"{model.name}.pth"
 
-# AdamW optimizer; includes weight decay for regularization
-optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    print(checkpoint_path)
+    
+    train_loop(model=model, 
+            train_dataloader=train_dataloader,
+            valid_dataloader=valid_dataloader,
+            optimizer=optimizer, 
+            lr_scheduler=lr_scheduler, 
+            device=torch.device(device), 
+            epochs=epochs, 
+            checkpoint_path=checkpoint_path,
+            use_scaler=True)
+    wandb.finish()
 
-# Learning rate scheduler; adjusts the learning rate during training
-lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, 
-                                                   max_lr=lr, 
-                                                   total_steps=epochs*len(train_dataloader))
-wandb.config.update({"learning_rate": optimizer.defaults['lr']})
-train_loop(model=model, 
-           train_dataloader=train_dataloader,
-           valid_dataloader=valid_dataloader,
-           optimizer=optimizer, 
-           lr_scheduler=lr_scheduler, 
-           device=torch.device(device), 
-           epochs=epochs, 
-           checkpoint_path=checkpoint_path,
-           use_scaler=True)
-wandb.finish()
+if __name__ == "__main__":
+    # parser = argparse.ArgumentParser(description='Treinar um modelo Mask R-CNN com PyTorch e W&B.')
+    # parser.add_argument('--dataset_dir', type=str, required=True, help='Diretório do dataset')
+    # parser.add_argument('--epochs', type=int, required=True, help='Número de épocas')
+    # parser.add_argument('--size', type=int, required=True, help='Tamanho das imagens de alimentação do modelo')
+    # parser.add_argument('--class_names', type=list, required=False, help='Class names')
+    # args = parser.parse_args()
+    dataset_dir= "mapping"
+    epochs = 40
+    size = 300
+    class_names = ['background', 'building']
+    # if args.class_names:
+    #     class_names = args.class_names
+    main(dataset_dir=dataset_dir, epochs=epochs, size=size, class_names=class_names)

@@ -1,0 +1,51 @@
+{
+  "os":  "Linux-6.8.0-1016-gcp-x86_64-with-glibc2.35",
+  "python":  "3.10.15",
+  "startedAt":  "2024-10-22T15:34:55.347494Z",
+  "args":  [
+    "--dataset_dir",
+    "mapping",
+    "--epochs",
+    "2",
+    "--size",
+    "300"
+  ],
+  "program":  "/home/your_email/iptu/samples/mapping/main.py",
+  "codePath":  "samples/mapping/main.py",
+  "git":  {
+    "remote":  "https://github.com/JoaquimBreno/RealEstateDetection.git",
+    "commit":  "60618681048f8f28fdd4ab81020b0c72caf4bb58"
+  },
+  "email":  "contatojoaquim.breno@gmail.com",
+  "root":  "/home/your_email/iptu/samples/mapping",
+  "host":  "joka-ark",
+  "username":  "your_email",
+  "executable":  "/home/your_email/miniconda/envs/iptu310/bin/python",
+  "codePathLocal":  "main.py",
+  "cpu_count":  2,
+  "cpu_count_logical":  4,
+  "gpu":  "Tesla T4",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "266206101504",
+      "used":  "49890480128"
+    }
+  },
+  "memory":  {
+    "total":  "27311808512"
+  },
+  "cpu":  {
+    "count":  2,
+    "countLogical":  4
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "Tesla T4",
+      "memoryTotal":  "16106127360",
+      "cudaCores":  2560,
+      "architecture":  "Turing"
+    }
+  ],
+  "cudaVersion":  "12.6"
+}

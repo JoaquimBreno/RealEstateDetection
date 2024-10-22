@@ -1,0 +1,21 @@
+loading annotations into memory...
+Traceback (most recent call last):
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 352, in <module>
+    main(dataset_dir=args.dataset_dir, epochs=args.epochs, size=args.size, class_names=args.size)
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 291, in main
+    train_dataloader, valid_dataloader = dataset_load(size,dataset_dir, device)
+  File "/home/your_email/iptu/samples/mapping/main2.py", line 95, in dataset_load
+    coco = dataset.load_coco(dataset_dir, 'train', return_coco=True)
+  File "/home/your_email/iptu/samples/mapping/loader.py", line 74, in load_coco
+    coco = COCO("{}/{}/annotation.json".format(dataset_dir, subset))
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/site-packages/pycocotools/coco.py", line 82, in __init__
+    dataset = json.load(f)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/home/your_email/miniconda/envs/iptu310/lib/python3.10/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+KeyboardInterrupt
